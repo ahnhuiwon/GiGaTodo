@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: todo-app-postgres
+    ports:
+      - "13000:5432"
+    environment:
+      POSTGRES_DB: todo-app
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - todoapp-data:/var/lib/postgresql/data
+      
+volumes:
+  todoapp-data:
+    name: todoapp-data

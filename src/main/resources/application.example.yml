@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: todoapp
+
+  datasource:
+    url: jdbc:postgresql://localhost:13000/todo-app
+    username: your-username
+    password: your-password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

@@ -1,6 +1,8 @@
 package com.example.todoapp.global.exception;
 
 import com.example.todoapp.todo.TodoNotFoundException;
+import com.example.todoapp.user.DuplicateEmailException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,4 +26,14 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
 	}
 	
+	/**
+	 * 이메일 중복 시 409 Conflict로 응답
+	 * @param e - 발생한 예외
+	 * @return - 409 상태와 에러 응답
+	 */
+	@ExceptionHandler(DuplicateEmailException.class)
+	public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
+		ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), e.getMessage());
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+	}
 }

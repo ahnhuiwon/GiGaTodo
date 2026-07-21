@@ -1,17 +1,33 @@
 package com.example.todoapp.global.config;
 
+
+import com.example.todoapp.global.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security 설정
  */
 @Configuration
 public class SecurityConfig {
+	
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	
+	/**
+	 * 인스턴스 할당 메소드
+	 * @param jwtAuthenticationFilter - JWT 인증 필터
+	 */
+	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
+	
 	
 	/**
 	 * 보안 필터 체인 설정 메소드
@@ -20,12 +36,17 @@ public class SecurityConfig {
 	 * @throws Exception - 설정 중 오류
 	 */
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
         .csrf(csrf -> csrf.disable())
+        .sessionManagement(session -> session
+        		.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            .anyRequest().permitAll()
-        );
+        		.requestMatchers("/api/auth/**").permitAll()
+        		.requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
+        		.anyRequest().authenticated())
+        .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        
 		return http.build();
 	}
 	
@@ -34,7 +55,7 @@ public class SecurityConfig {
 	 * @return PasswordEncoder 구현 개체
 	 */
 	@Bean
-	public PasswordEncoder passwordEncoder() {
+	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 }

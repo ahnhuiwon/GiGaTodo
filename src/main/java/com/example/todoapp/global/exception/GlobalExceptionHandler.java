@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.example.todoapp.auth.InvalidCredentialsException;
 
 /**
  * 전역 예외 처리 클래스
@@ -35,5 +36,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
 		ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), e.getMessage());
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+	}
+	
+	/**
+	 * 로그인 정보가 일치하지 않을 경우 401 Unauthorized로 응답
+	 * @param e - 발생한 예외
+	 * @return - 401 상태와 에러 응답
+	 */
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException e) {
+		ErrorResponse body = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
 	}
 }

@@ -1,25 +1,26 @@
 package com.example.todoapp.todo;
 
 import com.example.todoapp.todo.dto.TodoCreateRequest;
-import com.example.todoapp.todo.dto.TodoUpdateRequest;
-
 import com.example.todoapp.todo.dto.TodoResponse;
+import com.example.todoapp.todo.dto.TodoUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
+/**
+ * Todo API 컨트롤러 클래스
+ */
 @RestController
 @RequestMapping("/api/todos")
 public class TodoController {
@@ -31,63 +32,88 @@ public class TodoController {
 	}
 	
 	/**
-     * 투두리스트 생성: POST /api/todos
-     * @param request 생성 요청 본문
-     * @return 생성된 Todo (201 Created)
-     */
+	 * Todo 생성 메소드
+	 * @param email 로그인한 사용자 이메일
+	 * @param request 생성 요청
+	 * @return 생성된 Todo (상태 201)
+	 */
 	@PostMapping
-	public ResponseEntity<TodoResponse> create(@Valid @RequestBody TodoCreateRequest request) {
-		Todo todo = this.todoService.create(request.getContent());
-		TodoResponse body = new TodoResponse(todo);
-		return ResponseEntity.status(HttpStatus.CREATED).body(body);
+	public ResponseEntity<TodoResponse> create(
+			@AuthenticationPrincipal String email,
+			@Valid @RequestBody TodoCreateRequest request
+	) {
+		Todo todo = this.todoService.create(email, request.getContent());
+		return ResponseEntity.status(HttpStatus.CREATED).body(new TodoResponse(todo));
 	}
 	
 	/**
-	 * 투두리스트 전체 조회: GET /api/todos
-	 * @return
+	 * Todo 전체 조회 메소드
+	 * @param email 로그인한 사용자 이메일
+	 * @return Todo 전체 리스트
 	 */
 	@GetMapping
-	public List<TodoResponse> findAll() {
-		return this.todoService.findAll().stream()
-				.map(TodoResponse::new)
-				.toList();
+	public List<TodoResponse> findAll(@AuthenticationPrincipal String email) {
+		return this.todoService.findAll(email).stream()
+					.map(TodoResponse::new)
+					.toList();
 	}
 	
 	/**
-	 * 투두리스트 단건 조회: GET /api/todos/{id}
-	 * @param id
-	 * @return
+	 * Todo 단건 조회 메소드
+	 * @param email 로그인한 사용자 이메일
+	 * @param id Todo id
+	 * @return 조회된 Todo
 	 */
 	@GetMapping("/{id}")
-	public TodoResponse findById(@PathVariable("id") Long id) {
-		Todo todo = this.todoService.findById(id);
-		return new TodoResponse(todo);
+	public TodoResponse findById(
+			@AuthenticationPrincipal String email,
+			@PathVariable("id") Long id
+	) {
+		return new TodoResponse(this.todoService.findById(id, email));
 	}
-	
 	
 	/**
-     * 투두리스트 단건 삭제: DELETE /api/todos/{id}
-     * @param id 삭제할 Todo의 id
-     * @return 빈 응답 (204 No Content)
-     */
-	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
-		this.todoService.delete(id);
-		return ResponseEntity.noContent().build();
-	}
-	
-	@PutMapping("/{id}")
+	 * 사용자 Todo 내용 변경 메소드
+	 * @param email - 로그인한 사용자 이메일
+	 * @param id - Todo id
+	 * @param request - 수정 요청 내용
+	 * @return 수정된 Todo
+	 */
+	@PutMapping("{id}")
 	public TodoResponse updateContent(
-			@PathVariable("id") Long id, 
-			@Valid @RequestBody TodoUpdateRequest request) 
-	{
-		Todo todo = this.todoService.updateContent(id, request.getContent());
-		return new TodoResponse(todo);
+			@AuthenticationPrincipal String email,
+			@PathVariable("id") Long id,
+			@Valid @RequestBody TodoUpdateRequest request
+	) {
+		return new TodoResponse(this.todoService.updateContent(id, email, request.getContent()));
 	}
 	
+	/**
+	 * Todo 상태 토글 메소드
+	 * @param email 로그인한 사용자 이메일
+	 * @param id TOdo id
+	 * @return 변경된 Todo
+	 */
 	@PatchMapping("/{id}/done")
-	public TodoResponse toggleDone(@PathVariable("id") Long id) {
-		Todo todo = this.todoService.toggleDone(id);
-		return new TodoResponse(todo);
+	public TodoResponse toggleDone(
+			@AuthenticationPrincipal String email,
+			@PathVariable("id") Long id
+	) {
+		return new TodoResponse(this.todoService.toggleDone(id, email));
+	}
+	
+	/**
+	 * 사용자 Todo 삭제 메소드
+	 * @param email 로그인한 사용자 이메일
+	 * @param id Todo id
+	 * @return 빈 응답 (상태 204)
+	 */
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> delete(
+			@AuthenticationPrincipal String email,
+			@PathVariable("id") Long id
+	) {
+		this.todoService.deleteTodo(id, email);
+		return ResponseEntity.noContent().build();
 	}
 }

@@ -1,6 +1,7 @@
 package com.example.todoapp.global.config;
 
 
+import com.example.todoapp.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.todoapp.global.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,13 +20,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 	
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	
 	/**
 	 * 인스턴스 할당 메소드
 	 * @param jwtAuthenticationFilter - JWT 인증 필터
+	 * @param jwtAuthenticationEntryPoint 인증 실패 시 401 응답 진입점
 	 */
-	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+	public SecurityConfig(
+			JwtAuthenticationFilter jwtAuthenticationFilter,
+			JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
+	) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
 	}
 	
 	
@@ -45,6 +52,7 @@ public class SecurityConfig {
         		.requestMatchers("/api/auth/**").permitAll()
         		.requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
         		.anyRequest().authenticated())
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(this.jwtAuthenticationEntryPoint))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
 		return http.build();

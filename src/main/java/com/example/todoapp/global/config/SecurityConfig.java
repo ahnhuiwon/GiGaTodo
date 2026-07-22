@@ -1,8 +1,9 @@
 package com.example.todoapp.global.config;
 
-
 import com.example.todoapp.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.todoapp.global.jwt.JwtAuthenticationFilter;
+import com.example.todoapp.global.oauth.CustomOAuth2UserService;
+import com.example.todoapp.global.oauth.OAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,6 +22,8 @@ public class SecurityConfig {
 	
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 	
 	/**
 	 * 인스턴스 할당 메소드
@@ -29,10 +32,14 @@ public class SecurityConfig {
 	 */
 	public SecurityConfig(
 			JwtAuthenticationFilter jwtAuthenticationFilter,
-			JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint
+			JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+			CustomOAuth2UserService customOAuth2UserService,
+			OAuth2SuccessHandler oAuth2SuccessHandler
 	) {
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
 		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+		this.customOAuth2UserService = customOAuth2UserService;
+		this.oAuth2SuccessHandler = oAuth2SuccessHandler;
 	}
 	
 	
@@ -51,8 +58,13 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
         		.requestMatchers("/api/auth/**").permitAll()
         		.requestMatchers(HttpMethod.POST, "/api/users/signup").permitAll()
+        		.requestMatchers("/oauth2/**", "/login/**").permitAll()
         		.anyRequest().authenticated())
         .exceptionHandling(ex -> ex.authenticationEntryPoint(this.jwtAuthenticationEntryPoint))
+        .oauth2Login(oauth2 -> 
+        	oauth2.userInfoEndpoint(userInfo -> userInfo
+        		.userService(this.customOAuth2UserService))
+        		.successHandler(oAuth2SuccessHandler))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
 		return http.build();

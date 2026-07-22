@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 /**
  * 회원 정보
@@ -19,11 +21,18 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@Column(nullable = false, unique = true)
+	@Column(unique = true)
 	private String email;
 	
-	@Column(nullable = false)
+	@Column
 	private String password;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private AuthProvider provider;
+	
+	@Column
+	private String providerId;
 	
 	@Column(nullable = false)
 	private String nickname;
@@ -46,7 +55,39 @@ public class User {
 		this.email = email;
 		this.password = password;
 		this.nickname = nickname;
+		this.provider = AuthProvider.LOCAL;
 		this.createdAt = LocalDateTime.now();
+	}
+	
+	/**
+	 * 소셜 회원을 생성
+	 * @param email 이메일 (없을 수도 있음)
+	 * @param password 닉네임
+	 * @param provider SNS 제공자
+	 * @param providerId SNS 제공자가 준 id
+	 */
+	public User(String email, String nickname, AuthProvider provider, String providerId) {
+		this.email = email;
+		this.nickname = nickname;
+		this.provider = provider;
+		this.providerId = providerId;
+		this.createdAt = LocalDateTime.now();
+	}
+	
+	/**
+	 * SNS 제공자 Getter
+	 * @return SNS 제공자
+	 */
+	public AuthProvider getProvider() {
+		return this.provider;
+	}
+	
+	/**
+	 * SNS 제공자 고유 id Getter
+	 * @return providerId (일반 가입자는 null)
+	 */
+	public String getProviderId() {
+		return this.providerId;
 	}
 	
 	/**

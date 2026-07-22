@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Map;
 
 /**
  * 소셜 로그인 성공 시, 해당 소속으로 받은 사용자 정보로 회원을
@@ -40,10 +41,25 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
 		AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
 		
-		String providerId = oAuth2User.getAttribute("sub");
-		String email = oAuth2User.getAttribute("email");
-		String name = oAuth2User.getAttribute("name");
-		String nickname = (name != null) ? name : (email != null ? email : "사용자");
+		String providerId;
+		String email;
+		String rawNickname;
+		
+		if(provider == AuthProvider.GOOGLE) {
+			providerId = oAuth2User.getAttribute("sub");
+			email = oAuth2User.getAttribute("email");
+			rawNickname = oAuth2User.getAttribute("name");
+		} else if (provider == AuthProvider.KAKAO) {
+			providerId = String.valueOf((Object) oAuth2User.getAttribute("id"));
+			Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
+			Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+			rawNickname = (String) profile.get("nickname");
+			email = (String) kakaoAccount.get("email");
+		} else {
+			throw new OAuth2AuthenticationException("지원하지 않는 sns입니다.");
+		}
+		
+		String nickname = (rawNickname != null) ? rawNickname : (email != null ? email : "사용자");
 		
 		this.userRepository.findByProviderAndProviderId(provider, providerId)
 			.orElseGet(() -> this.userRepository.save(new User(email, nickname, provider, providerId)));

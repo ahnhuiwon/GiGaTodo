@@ -61,10 +61,14 @@ public class SecurityConfig {
         		.requestMatchers("/oauth2/**", "/login/**").permitAll()
         		.anyRequest().authenticated())
         .exceptionHandling(ex -> ex.authenticationEntryPoint(this.jwtAuthenticationEntryPoint))
-        .oauth2Login(oauth2 -> 
-        	oauth2.userInfoEndpoint(userInfo -> userInfo
-        		.userService(this.customOAuth2UserService))
-        		.successHandler(oAuth2SuccessHandler))
+        .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(this.customOAuth2UserService))
+                .successHandler(this.oAuth2SuccessHandler)
+                .failureHandler((request, response, exception) -> {
+                    response.setContentType("text/plain;charset=UTF-8");
+                    response.getWriter().write("OAuth2 실패: " + exception.getMessage());
+                }))
         .addFilterBefore(this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
 		return http.build();

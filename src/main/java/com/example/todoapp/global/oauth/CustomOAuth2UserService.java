@@ -57,6 +57,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 			rawNickname = (String) profile.get("nickname");
 			email = (String) kakaoAccount.get("email");
+		} else if (provider == AuthProvider.NAVER) {
+			Map<String, Object> response = oAuth2User.getAttribute("response");
+			providerId = (String) response.get("id");
+			email = (String) response.get("email");
+			rawNickname = (String) response.get("nickname");
 		} else {
 			throw new OAuth2AuthenticationException("지원하지 않는 sns입니다.");
 		}

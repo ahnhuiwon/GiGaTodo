@@ -1,10 +1,14 @@
 package com.example.todoapp.todo;
 
+import com.example.todoapp.todo.dto.HeatmapResponse;
+import com.example.todoapp.todo.dto.SummaryResponse;
 import com.example.todoapp.todo.dto.TodoCreateRequest;
 import com.example.todoapp.todo.dto.TodoResponse;
 import com.example.todoapp.todo.dto.TodoUpdateRequest;
 import jakarta.validation.Valid;
 import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +21,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Todo API 컨트롤러 클래스
@@ -115,5 +122,23 @@ public class TodoController {
 	) {
 		this.todoService.deleteTodo(id, userId);
 		return ResponseEntity.noContent().build();
+	}
+	
+	@GetMapping("/heatmap")
+	public List<HeatmapResponse> heatmap(
+			@AuthenticationPrincipal Long userId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+	) {
+		return this.todoService.getHeatMap(userId, start, end);
+	}
+	
+	@GetMapping("/summary")
+	public SummaryResponse summary(
+			@AuthenticationPrincipal Long userId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+	) {
+		return this.todoService.getSummary(userId, start, end);
 	}
 }

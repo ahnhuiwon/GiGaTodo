@@ -29,6 +29,9 @@ public class Todo {
 	@Column(nullable = false)
 	private LocalDateTime createdAt;	
 	
+	@Column
+	private LocalDateTime completedAt;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
@@ -75,8 +78,28 @@ public class Todo {
 		this.content = content;
 	}
 	
+	/**
+	 * 완료 시각 반환 Getter
+	 * @return 완료 시각 (미완료면 null)
+	 */
+	public LocalDateTime getCompletedAt() {
+		return this.completedAt;
+	}
+	
+	/**
+	 * 완료 여부를 토글하고
+	 * 완료 시간을 기록 또는 제거하는 메소드
+	 */
 	public void toggleDone() {
 		this.done = !this.done;
+		
+		if(this.done) {
+			// 완료 시 시간 기록
+			this.completedAt = LocalDateTime.now();
+		} else {
+			// 취소 시 시간 기록 제거
+			this.completedAt = null;
+		}
 	}
 	
 }

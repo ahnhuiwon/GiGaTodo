@@ -5,6 +5,11 @@ import com.example.todoapp.user.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.todoapp.todo.dto.HeatmapResponse;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import com.example.todoapp.todo.dto.SummaryResponse;
 
 @Service
 public class TodoService {
@@ -98,6 +103,22 @@ public class TodoService {
 	}
 	
 	/**
+	 * 사용자의 날짜별 완료 개수를 조회한다
+	 * @param userId 사용자 id
+	 * @param start 시작 날짜
+	 * @param end 끝 날짜
+	 * @return 완료 개수 목록
+	 */
+	public List<HeatmapResponse> getHeatMap(Long userId, LocalDate start, LocalDate end) {
+		LocalDateTime startDateTime = start.atStartOfDay();
+		LocalDateTime endDateTime = end.plusDays(1).atStartOfDay();
+		
+		return this.todoRepository.countCompletedbyDay(userId, startDateTime, endDateTime).stream()
+				.map(dateCount -> new HeatmapResponse(dateCount.getDate(), dateCount.getCount()))
+				.toList();
+	}
+	
+	/**
 	 * 이메일로 사용자를 찾는 메소드
 	 * @param email - 사용자 이메일
 	 * @return - 사용자
@@ -122,5 +143,23 @@ public class TodoService {
 		}
 		
 		return todo;
+	}
+	
+	/**
+	 * 기간별 총평(생성/완료 개수)을 조회하는 메소드
+	 * @param userId 사용자 id
+	 * @param start 시작 날짜
+	 * @param end 마지막 날짜
+	 * @return 총평 응답
+	 */
+	public SummaryResponse getSummary(Long userId, LocalDate start, LocalDate end) {
+		User user = this.getUser(userId);
+		LocalDateTime startDateTime = start.atStartOfDay();
+		LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
+		
+		long createdCount = this.todoRepository.countByUserAndCreatedAtBetween(user, startDateTime, endDateTime);
+		long completedCount = this.todoRepository.countByUserAndDoneTrueAndCompletedAtBetween(user, startDateTime, endDateTime);
+		
+		return new SummaryResponse(createdCount, completedCount);
 	}
 }

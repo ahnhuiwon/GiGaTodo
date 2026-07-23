@@ -50,6 +50,6 @@ public class AuthService {
 		}
 		
 		// JWT 발급
-		return this.jwtProvider.createToken(user.getEmail());
+		return this.jwtProvider.createToken(user.getId());
 	}
 }

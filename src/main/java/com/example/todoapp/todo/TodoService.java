@@ -29,8 +29,8 @@ public class TodoService {
 	 * @return - 저장된 Todo
 	 */
 	@Transactional
-	public Todo create(String email, String content) {
-		User user = this.getUser(email);
+	public Todo create(Long userId, String content) {
+		User user = this.getUser(userId);
 		Todo todo = new Todo(content, user);
 		return this.todoRepository.save(todo);
 	}
@@ -40,8 +40,8 @@ public class TodoService {
 	 * @param email - 로그인한 사용자 이메일
 	 * @return - 해당 사용자의 Todo 리스트
 	 */
-	public List<Todo> findAll(String email) {
-		User user = this.getUser(email);
+	public List<Todo> findAll(Long userId) {
+		User user = this.getUser(userId);
 		return this.todoRepository.findByUser(user);
 	}
 	
@@ -51,8 +51,8 @@ public class TodoService {
 	 * @param email - 로그인한 사용자 이메일
 	 * @return - 조회된 단건 Todo
 	 */
-	public Todo findById(Long id, String email) {
-		User user = this.getUser(email);
+	public Todo findById(Long id, Long userId) {
+		User user = this.getUser(userId);
 		return this.getOwnedTodo(id, user);
 	}
 	
@@ -64,8 +64,8 @@ public class TodoService {
 	 * @return - 수정된 Todo
 	 */
 	@Transactional
-	public Todo updateContent(Long id, String email, String content) {
-		User user = this.getUser(email);
+	public Todo updateContent(Long id, Long userId, String content) {
+		User user = this.getUser(userId);
 		Todo todo = this.getOwnedTodo(id, user);
 		todo.updateContent(content);
 		return todo;
@@ -78,8 +78,8 @@ public class TodoService {
 	 * @return - 변경된 Todo
 	 */
 	@Transactional
-	public Todo toggleDone(Long id, String email) {
-		User user = this.getUser(email);
+	public Todo toggleDone(Long id, Long userId) {
+		User user = this.getUser(userId);
 		Todo todo = this.getOwnedTodo(id, user);
 		todo.toggleDone();
 		return todo;
@@ -91,8 +91,8 @@ public class TodoService {
 	 * @param email - 로그인한 사용자 이메일
 	 */
 	@Transactional
-	public void deleteTodo(Long id, String email) {
-		User user = this.getUser(email);
+	public void deleteTodo(Long id, Long userId) {
+		User user = this.getUser(userId);
 		Todo todo = this.getOwnedTodo(id, user);
 		this.todoRepository.delete(todo);
 	}
@@ -102,8 +102,8 @@ public class TodoService {
 	 * @param email - 사용자 이메일
 	 * @return - 사용자
 	 */
-	private User getUser(String email) {
-		return this.userRepository.findByEmail(email)
+	private User getUser(Long userId) {
+		return this.userRepository.findById(userId)
 				.orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 	}
 	

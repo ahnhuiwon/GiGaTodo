@@ -32,15 +32,15 @@ public class JwtProvider {
     
     /**
      * 토큰 생성 메소드
-     * @param email - 토큰에 담을 이메일
-     * @return - 생성된 JWT 문자열
+     * @param userId 회원 Id
+     * @return 생성된 JWT 문자열
      */
-    public String createToken(String email) {
+    public String createToken(Long userId) {
     	Date now = new Date();
     	Date expiry = new Date(now.getTime() + this.validityMs);
     	
     	return Jwts.builder()
-    				.subject(email)
+    				.subject(String.valueOf(userId))
     				.issuedAt(now)
     				.expiration(expiry)
     				.signWith(this.key)
@@ -48,17 +48,18 @@ public class JwtProvider {
     }
     
     /**
-     * 토큰에서 이메일 추출 메소드
+     * 토큰에서 회원 id를 추출 메소드
      * @param token - JWT 문자열
-     * @return - 토큰에 담긴 이메일
+     * @return - 회원 id
      */
-    public String getEmail(String token) {
-    	return Jwts.parser()
-    				.verifyWith(this.key)
-    				.build()
-    				.parseSignedClaims(token)
-    				.getPayload()
-    				.getSubject();
+    public Long getUserId(String token) {
+    	String subject = Jwts.parser()
+    						.verifyWith(this.key)
+    						.build()
+    						.parseSignedClaims(token)
+    						.getPayload()
+    						.getSubject();
+    	return Long.valueOf(subject);
     }
     
     /**

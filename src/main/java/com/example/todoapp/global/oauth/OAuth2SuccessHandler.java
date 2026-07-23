@@ -29,8 +29,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 			Authentication authentication
 	) throws IOException {
 		OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-		String email = oAuth2User.getAttribute("email");
-		String token = this.jwtProvider.createToken(email);
+		Long userId = oAuth2User.getAttribute("userId");
+		String token = this.jwtProvider.createToken(userId);
 		
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");

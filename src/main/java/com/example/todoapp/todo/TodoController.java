@@ -39,10 +39,10 @@ public class TodoController {
 	 */
 	@PostMapping
 	public ResponseEntity<TodoResponse> create(
-			@AuthenticationPrincipal String email,
+			@AuthenticationPrincipal Long userId,
 			@Valid @RequestBody TodoCreateRequest request
 	) {
-		Todo todo = this.todoService.create(email, request.getContent());
+		Todo todo = this.todoService.create(userId, request.getContent());
 		return ResponseEntity.status(HttpStatus.CREATED).body(new TodoResponse(todo));
 	}
 	
@@ -52,8 +52,8 @@ public class TodoController {
 	 * @return Todo 전체 리스트
 	 */
 	@GetMapping
-	public List<TodoResponse> findAll(@AuthenticationPrincipal String email) {
-		return this.todoService.findAll(email).stream()
+	public List<TodoResponse> findAll(@AuthenticationPrincipal Long userId) {
+		return this.todoService.findAll(userId).stream()
 					.map(TodoResponse::new)
 					.toList();
 	}
@@ -66,10 +66,10 @@ public class TodoController {
 	 */
 	@GetMapping("/{id}")
 	public TodoResponse findById(
-			@AuthenticationPrincipal String email,
+			@AuthenticationPrincipal Long UserId,
 			@PathVariable("id") Long id
 	) {
-		return new TodoResponse(this.todoService.findById(id, email));
+		return new TodoResponse(this.todoService.findById(id, UserId));
 	}
 	
 	/**
@@ -81,11 +81,11 @@ public class TodoController {
 	 */
 	@PutMapping("{id}")
 	public TodoResponse updateContent(
-			@AuthenticationPrincipal String email,
+			@AuthenticationPrincipal Long userId,
 			@PathVariable("id") Long id,
 			@Valid @RequestBody TodoUpdateRequest request
 	) {
-		return new TodoResponse(this.todoService.updateContent(id, email, request.getContent()));
+		return new TodoResponse(this.todoService.updateContent(id, userId, request.getContent()));
 	}
 	
 	/**
@@ -96,10 +96,10 @@ public class TodoController {
 	 */
 	@PatchMapping("/{id}/done")
 	public TodoResponse toggleDone(
-			@AuthenticationPrincipal String email,
+			@AuthenticationPrincipal Long userId,
 			@PathVariable("id") Long id
 	) {
-		return new TodoResponse(this.todoService.toggleDone(id, email));
+		return new TodoResponse(this.todoService.toggleDone(id, userId));
 	}
 	
 	/**
@@ -110,10 +110,10 @@ public class TodoController {
 	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(
-			@AuthenticationPrincipal String email,
+			@AuthenticationPrincipal Long userId,
 			@PathVariable("id") Long id
 	) {
-		this.todoService.deleteTodo(id, email);
+		this.todoService.deleteTodo(id, userId);
 		return ResponseEntity.noContent().build();
 	}
 }

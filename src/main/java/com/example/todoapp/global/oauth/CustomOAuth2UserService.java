@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
+import java.util.HashMap;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 /**
  * 소셜 로그인 성공 시, 해당 소속으로 받은 사용자 정보로 회원을
@@ -61,10 +63,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		
 		String nickname = (rawNickname != null) ? rawNickname : (email != null ? email : "사용자");
 		
-		this.userRepository.findByProviderAndProviderId(provider, providerId)
-			.orElseGet(() -> this.userRepository.save(new User(email, nickname, provider, providerId)));
+		User user = this.userRepository.findByProviderAndProviderId(provider, providerId)
+						.orElseGet(() -> this.userRepository.save(new User(email, nickname, provider, providerId)));
 		
-		return oAuth2User;
+		Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+		attributes.put("userId", user.getId());
+		
+		return new DefaultOAuth2User(oAuth2User.getAuthorities(), attributes, "userId");
 	}
 	
 }
